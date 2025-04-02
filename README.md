@@ -11,5 +11,3 @@ Este repositório contém códigos em Python que simulam o funcionamento de dive
 - **Luminosidade**: LDR 5mm (Responsável: Bruna)
 - **Monóxido de Carbono**: MQ-7 (Responsável: Lucas)
 
-## Estrutura do Repositório
-
