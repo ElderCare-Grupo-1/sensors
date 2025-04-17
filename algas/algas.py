@@ -4,50 +4,22 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 import psutil
 import csv
-from tqdm import tqdm
-from GeradorDados import GerenciadorSensores  # Importe sua classe GerenciadorSensores
+from GeradorDados import GerenciadorSensores 
 
 class GerenciadorSensoresTester:
     def __init__(self, db_config):
         self.db_config = db_config
         self.gerenciador = GerenciadorSensores()
-        self.gerenciador.ativar_todos()  # Ativa todos os sensores
+        self.dadosColetados = []
         self.results = []
         
     def collect_sensor_data(self, num_readings):
-        """Coleta dados dos sensores usando o GerenciadorSensores"""
-        all_data = []
-        
-        for _ in range(num_readings):
-            # Coleta dados de todos os sensores ativos
-            dados_sensores = self.gerenciador.ler_dados_em_quantidade(1)
-            
-            # Processa os dados coletados
-            for localizacao, sensores in dados_sensores.items():
-                if localizacao == "global":
-                    for sensor_data in sensores:
-                        sensor_name = sensor_data["sensor"]
-                        readings = sensor_data["dados"]
-                        if isinstance(readings, list):
-                            for reading in readings:
-                                all_data.append(self._format_reading(sensor_name, "global", reading))
-                        else:
-                            all_data.append(self._format_reading(sensor_name, "global", readings))
-                else:
-                    for sensor_data in sensores:
-                        sensor_name = sensor_data["sensor"]
-                        readings = sensor_data["dados"]
-                        if isinstance(readings, list):
-                            for reading in readings:
-                                all_data.append(self._format_reading(sensor_name, localizacao, reading))
-                        else:
-                            all_data.append(self._format_reading(sensor_name, localizacao, readings))
-        
-        return all_data
+        self.dadosColetados = self.gerenciador.iniciar(num_readings).copy()
+        print("Dados", self.dadosColetados)
+        return self.dadosColetados
     
-    def _format_reading(self, sensor_name, location, reading):
+    def _format_reading(self, sensor_name, reading):
         """Formata a leitura para inserção no MySQL"""
-        # Mapeamento de nome do sensor para ID (ajuste conforme sua tabela sensors)
         sensor_ids = {
             "HRS3300": 1,
             "SPO2Sensor": 2,
@@ -82,27 +54,17 @@ class GerenciadorSensoresTester:
             sensor_ids.get(sensor_name, 1)  # Default para ID 1 se não encontrado
         )
     
-    def test_performance(self, total_readings, batch_sizes):
-        """Executa testes completos de coleta e inserção"""
-        print(f"\n=== INICIANDO TESTES COM {total_readings:,} LEITURAS ===\n")
+    def test_performance(self, batch_sizes):
         
-        # Testa cada tamanho de lote
         for batch_size in batch_sizes:
             print(f"\n► TESTANDO TAMANHO DE LOTE: {batch_size}")
             
-            # Coleta de dados (medindo tempo)
             gen_start = time.time()
             all_data = []
             
-            # Calcula quantas rodadas de coleta são necessárias
-            rounds = max(1, total_readings // len(self.get_all_sensors()))
-            
-            for _ in tqdm(range(rounds), desc="Coletando dados", unit="rodada"):
-                collected = self.collect_sensor_data(batch_size)
-                all_data.extend(collected)
-                if len(all_data) >= total_readings:
-                    all_data = all_data[:total_readings]
-                    break
+            collected = self.collect_sensor_data(batch_size)
+            all_data.extend(collected)
+
             
             gen_time = time.time() - gen_start
             
@@ -110,7 +72,7 @@ class GerenciadorSensoresTester:
             batches = [all_data[i:i + batch_size] for i in range(0, len(all_data), batch_size)]
             
             # Teste de inserção
-            insert_metrics = self._test_insert_performance(batches)
+            insert_metrics = self._test_insert_performance()
             
             # Armazena resultados
             self.results.append({
@@ -123,13 +85,13 @@ class GerenciadorSensoresTester:
             })
             
             self._print_current_results()
+            self.dadosColetados = []
         
         # Gera relatórios finais
         self._save_results()
         self._generate_charts()
     
     def get_all_sensors(self):
-        """Retorna lista de todos os sensores do gerenciador"""
         sensors = []
         
         # Sensores por localização
@@ -141,8 +103,7 @@ class GerenciadorSensoresTester:
         
         return sensors
     
-    def _test_insert_performance(self, batches):
-        """Testa performance de inserção dos lotes"""
+    def _test_insert_performance(self):
         conn = None
         metrics = {
             'insert_time': 0,
@@ -155,26 +116,39 @@ class GerenciadorSensoresTester:
             cursor = conn.cursor()
             
             # Prépara query
-            query = """
-            INSERT INTO raw_data (value, timestamp, sensor_idsensor) 
-            VALUES (%s, %s, %s)
+            queryDadosSensores = """
+            INSERT INTO raw_data (value) 
+                VALUES (%s)
             """
             
-            # Medição de recursos
+            # Transforma cada valor float em uma tupla de um elemento
+            dados_formatados = [(valor,) for valor in self.dadosColetados]
+            
             start_time = time.time()
             start_cpu = time.process_time()
             start_mem = psutil.virtual_memory().used
+
+            cursor.executemany(queryDadosSensores, dados_formatados)
+            conn.commit()
             
-            # Executa inserções com barra de progresso
-            for batch in tqdm(batches, desc="Inserindo lotes", unit="lote"):
-                cursor.executemany(query, batch)
-                conn.commit()
-            
-            # Calcula métricas
             metrics['insert_time'] = time.time() - start_time
             metrics['cpu_time'] = time.process_time() - start_cpu
-            metrics['memory_used'] = (psutil.virtual_memory().used - start_mem) / (1024 * 1024)  # MB
-            
+            metrics[''] = (psutil.virtual_memory().used - start_mem) / (1024 * 1024)  # MB
+
+            queryDadosMaquina = """
+            INSERT INTO machine_raw_data (value, components_idcomponents)
+                VALUES (%s, %s)
+            """
+
+            cursor.execute(queryDadosMaquina, (metrics["insert_time"], 4))
+            conn.commit()
+
+            cursor.execute(queryDadosMaquina, (metrics['cpu_time'], 5))
+            conn.commit()
+
+            cursor.execute(queryDadosMaquina, (metrics['memory_used'], 6))
+            conn.commit()
+
         except mysql.connector.Error as err:
             print(f"Erro MySQL: {err}")
         finally:
@@ -184,7 +158,6 @@ class GerenciadorSensoresTester:
         return metrics
     
     def _print_current_results(self):
-        """Exibe resultados do teste atual"""
         last = self.results[-1]
         print("\nRESULTADOS:")
         print(f"  Tamanho do lote: {last['batch_size']}")
@@ -263,7 +236,7 @@ class GerenciadorSensoresTester:
         plt.close()
         print(f"✔ Gráficos salvos em {chart_file}")
 
-# Configuração e execução
+
 if __name__ == "__main__":
     # Configuração do MySQL - ajuste com seus dados
     db_config = {
@@ -274,12 +247,9 @@ if __name__ == "__main__":
         'autocommit': False
     }
     
-    # Cria tester e executa testes
     tester = GerenciadorSensoresTester(db_config)
     
-    # Configuração dos testes
-    total_readings = 5000  # Total de leituras a serem coletadas/inseridas
-    batch_sizes = [60, 600, 6000, 600000, 6000000]  # Tamanhos de lote a testar
+    batch_sizes = [60, 600, 6000,   ]
     
     # Executa testes
-    tester.test_performance(total_readings, batch_sizes)
+    tester.test_performance(batch_sizes)

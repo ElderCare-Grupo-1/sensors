@@ -58,7 +58,7 @@ class SPO2Sensor(Sensor):
                 spo2_value = max(0, min(100, spo2_value))
                 spo2_value = self._smooth_spo2(spo2_value)
                 self.previous_spo2 = spo2_value
-                resultados.append({"Oxigeação do sangue": round(spo2_value, 2), "unidade": "%"})
+                resultados.append({"value": round(spo2_value, 2), "unidade": "%"})
             else:
                 resultados.append(None)
         

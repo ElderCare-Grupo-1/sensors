@@ -43,7 +43,7 @@ class HRS3300(Sensor):
                 status = "Bom"
             
             resultados.append({
-                "bpm": bpm,
+                "value": bpm,
                 "status": status,
                 "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             })

@@ -26,7 +26,7 @@ class MQ7(Sensor):
             valor, evento_raro = self._simular_leitura()
             self.valor_atual = valor
             resultados.append({
-                "co_ppm": round(valor, 2),
+                "value": round(valor, 2),
                 "evento_raro": evento_raro,
                 "localizacao": self.localizacao,
                 "sensor_id": self.sensor_id

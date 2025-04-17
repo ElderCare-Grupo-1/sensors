@@ -14,7 +14,7 @@ class LDR(Sensor):
         for _ in range(quantidade):
             self.luminosidade = max(0, min(1, random.uniform(-0.1, 0.1) + self.luminosidade))
             resultados.append({
-                "luminosidade": round(self.luminosidade, 2), 
+                "value": round(self.luminosidade, 2), 
                 "localizacao": self.localizacao
             })
         

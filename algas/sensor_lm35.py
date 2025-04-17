@@ -17,7 +17,7 @@ class LM35(Sensor):
                 temperatura = random.uniform(18, 30)
             
             resultados.append({
-                "temperatura": round(temperatura, 2),
+                "value": round(temperatura, 2),
                 "localizacao": self.localizacao
             })
         
