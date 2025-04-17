@@ -242,7 +242,7 @@ if __name__ == "__main__":
     db_config = {
         'host': 'localhost',
         'user': 'root',
-        'password': 'Nino0911',
+        'password': 'sua-senha',
         'database': 'elder_care',
         'autocommit': False
     }
