@@ -112,28 +112,29 @@ class GerenciadorSensoresTester:
         }
         
         try:
+            # Captura uso inicial de memória
+            process = psutil.Process()
+            start_mem = process.memory_info().rss  # em bytes
+            
             conn = mysql.connector.connect(**self.db_config)
             cursor = conn.cursor()
             
-            # Prépara query
             queryDadosSensores = """
             INSERT INTO raw_data (value) 
                 VALUES (%s)
             """
             
-            # Transforma cada valor float em uma tupla de um elemento
             dados_formatados = [(valor,) for valor in self.dadosColetados]
             
             start_time = time.time()
             start_cpu = time.process_time()
-            start_mem = psutil.virtual_memory().used
 
             cursor.executemany(queryDadosSensores, dados_formatados)
             conn.commit()
             
             metrics['insert_time'] = time.time() - start_time
             metrics['cpu_time'] = time.process_time() - start_cpu
-            metrics[''] = (psutil.virtual_memory().used - start_mem) / (1024 * 1024)  # MB
+            metrics['memory_used'] = (process.memory_info().rss - start_mem) / (1024 * 1024)  # Converter para MB
 
             queryDadosMaquina = """
             INSERT INTO machine_raw_data (value, components_idcomponents)
@@ -141,11 +142,7 @@ class GerenciadorSensoresTester:
             """
 
             cursor.execute(queryDadosMaquina, (metrics["insert_time"], 4))
-            conn.commit()
-
             cursor.execute(queryDadosMaquina, (metrics['cpu_time'], 5))
-            conn.commit()
-
             cursor.execute(queryDadosMaquina, (metrics['memory_used'], 6))
             conn.commit()
 
@@ -242,14 +239,14 @@ if __name__ == "__main__":
     db_config = {
         'host': 'localhost',
         'user': 'root',
-        'password': 'sua-senha',
+        'password': 'Nino0911',
         'database': 'elder_care',
         'autocommit': False
     }
     
     tester = GerenciadorSensoresTester(db_config)
     
-    batch_sizes = [60, 600, 6000,   ]
+    batch_sizes = [60, 600, 6000, 60000]
     
     # Executa testes
     tester.test_performance(batch_sizes)
