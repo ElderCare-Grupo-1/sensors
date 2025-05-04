@@ -35,7 +35,6 @@ class MQ7(Sensor):
         return resultados if quantidade > 1 else resultados[0]
 
     def simular_incendio(self, duracao_minutos=5):
-        """Simula um incêndio, onde o CO sobe rapidamente até 2000 ppm."""
         resultados = []
         tempo_segundos = 0
         valor = 15
@@ -54,7 +53,6 @@ class MQ7(Sensor):
         return resultados
 
     def simular_fogao_mal_regulado(self, duracao_minutos=20):
-        """Simula uma combustão incompleta, aumentando lentamente de 100 a 400 ppm."""
         resultados = []
         tempo_segundos = 0
         valor = 15
@@ -71,7 +69,6 @@ class MQ7(Sensor):
         return resultados
 
     def simular_queimadores_pouca_ventilacao(self, duracao_minutos=10):
-        """Simula vários queimadores acesos com pouca ventilação, indo de 400 a 800 ppm."""
         resultados = []
         tempo_segundos = 0
         valor = 15
@@ -88,7 +85,6 @@ class MQ7(Sensor):
         return resultados
 
     def simular_sensor_desregulado(self, duracao_minutos=10):
-        """Simula um sensor desregulado com valores variando entre 0 e valores altos."""
         resultados = []
         tempo_segundos = 0
 
