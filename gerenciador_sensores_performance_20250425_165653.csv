@@ -1,0 +1,4 @@
+Tamanho Lote,Total Leituras,Tempo Coleta (s),Taxa Coleta (leituras/s),Tempo Inserção (s),Taxa Inserção (leituras/s),Tempo CPU (s),Uso Memória (MB)
+60,63,0.996380090713501,63.22888282009542,0,0,0,0
+600,602,0.008820772171020508,68247.99329675379,0,0,0,0
+6000,6003,0.14819121360778809,40508.474516498034,0,0,0,0

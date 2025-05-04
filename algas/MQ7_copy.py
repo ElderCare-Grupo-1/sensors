@@ -116,7 +116,7 @@ fig, axs = plt.subplots(2, 2, figsize=(12, 8))
 
 cenarios = {
     "Incêndio": dados_incendio,
-    "Fogão Desregulado": dados_fogao,
+    "Fogão Mal Regulado": dados_fogao,
     "Queimadores + Pouca Ventilação": dados_queimadores,
     "Sensor Desregulado": dados_desregulado
 }
