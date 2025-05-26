@@ -2,6 +2,8 @@ import random
 import time
 from datetime import datetime
 import psutil
+import matplotlib
+matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
 import csv
 import signal
@@ -158,3 +160,4 @@ class SimuladorBatimentos:
 if __name__ == "__main__":
     simulador = SimuladorBatimentos()
     simulador.simular()
+    
