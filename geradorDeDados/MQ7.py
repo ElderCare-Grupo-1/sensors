@@ -20,7 +20,7 @@ class MQ7(Sensor):
                 variacao_percentual = random.uniform(-2, 2)
 
             novo_valor = self.valor_atual * (1 + variacao_percentual / 100)
-            novo_valor = max(20, min(novo_valor, 2000))
+            novo_valor = max(3, min(novo_valor, 2000))
 
         self.valor_atual = novo_valor
         return novo_valor, evento_raro
@@ -29,14 +29,28 @@ class MQ7(Sensor):
         """Retorna os dados no formato padronizado do sistema"""
         if not self.ativo:
             return None
-        
+
         valor, evento_raro = self._simular_leitura()
+
+        if valor <= 9:
+            estado = "Seguro"
+        elif 10 <= valor <= 50:
+            estado = "Exposição Leve"
+        elif 51 <= valor <= 150:
+            estado = "Exposição Moderada"
+        elif 151 <= valor <= 400:
+            estado = "Exposição Severa"
+        else:
+            estado = "Emergência Médica"
+
         return {
             "co_ppm": round(valor, 2),
             "evento_raro": evento_raro,
             "localizacao": self.localizacao,
-            "sensor_id": self.sensor_id
+            "sensor_id": self.sensor_id,
+            "estado": estado
         }
+
 
     def capturar_serie(self, quantidade, chance_evento_raro=0.001):
         """Captura uma série de leituras (para uso externo)"""
