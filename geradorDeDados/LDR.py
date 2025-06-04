@@ -26,6 +26,8 @@ class LDR(Sensor):
         resistLDR = self.resistencia_ldr(voltSaida)
         luz = self.luz_aproximada(resistLDR)
 
+        self.gerar_csv()
+
         if luz > 75:
             print(f"LDR: Luz estimado: {luz:.2f} | Está claro")
         elif luz < 30:
@@ -82,7 +84,7 @@ class LDR(Sensor):
             
         if not nome_arquivo:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            nome_arquivo = f"dados_ldr_{self.localizacao}_{timestamp}.csv"
+            nome_arquivo = f"dados_ldr.csv"
         
         cabecalho = ["Timestamp", "Localização", "Tensão (V)", "Resistência (Ω)", "Luminosidade"]
         
