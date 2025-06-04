@@ -2,7 +2,8 @@ from sensor import Sensor
 import random
 import numpy as np
 import matplotlib.pyplot as plt
-import time
+import csv
+from datetime import datetime
 
 class LDR(Sensor):
     def __init__(self, localizacao):
@@ -58,7 +59,8 @@ class LDR(Sensor):
     def plotar(self, voltSaida, titulo):
         tempo = list(range(len(voltSaida)))
         resistencias = [self.resistencia_ldr(v) if v > 0 else float('inf') for v in voltSaida]
-        luz = [self.luz_aproximada(r) if r != float('inf') else 0 for r in resistencias]
+        # luz = [self.luz_aproximada(r) if r != float('inf') else 0 for r in resistencias]
+        luz = [self.simular_e_armazenar(v) for v in voltSaida]
 
         plt.figure(figsize=(10, 4))
         plt.plot(tempo, voltSaida, label='Tensão (V)', marker='o')
@@ -72,6 +74,54 @@ class LDR(Sensor):
         plt.tight_layout()
         plt.show()
 
+    def gerar_csv(self, nome_arquivo="dados_luminosidade.csv"):
+        """Gera um arquivo CSV com todos os dados coletados"""
+        if not self.dados_coletados:
+            print("Nenhum dado foi coletado para gerar o CSV.")
+            return None
+            
+        if not nome_arquivo:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            nome_arquivo = f"dados_ldr_{self.localizacao}_{timestamp}.csv"
+        
+        cabecalho = ["Timestamp", "Localização", "Tensão (V)", "Resistência (Ω)", "Luminosidade"]
+        
+        try:
+            with open(nome_arquivo, mode='w', newline='', encoding='utf-8') as arquivo:
+                escritor = csv.writer(arquivo)
+                escritor.writerow(cabecalho)
+                
+                for dado in self.dados_coletados:
+                    escritor.writerow([
+                        dado["timestamp"],
+                        dado["localizacao"],
+                        dado["tensao_v"],
+                        dado["resistencia_ohm"],
+                        dado["luminosidade"]
+                    ])
+            
+            print(f"\nArquivo CSV gerado com sucesso: {nome_arquivo}")
+            return nome_arquivo
+        except Exception as e:
+            print(f"Erro ao gerar arquivo CSV: {e}")
+            return None
+        
+    def simular_e_armazenar(self, voltSaida):
+        """Simula uma leitura e armazena os dados"""
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        resistLDR = self.resistencia_ldr(voltSaida)
+        luz = round(self.luz_aproximada(resistLDR), 2)
+        
+        self.dados_coletados.append({
+            "timestamp": timestamp,
+            "tensao_v": voltSaida,
+            "resistencia_ohm": round(resistLDR, 2),
+            "luminosidade": luz,
+            "localizacao": self.localizacao
+        })
+        
+        return luz
+
     # --- Executar e exibir todos os cenários com gráfico ---
     def executar_cenarios(self):
         cenarios = [
@@ -80,15 +130,20 @@ class LDR(Sensor):
             ("Falha do Sensor", self.simular_falha_sensor()),
             ("Transição Dia/Noite", self.simular_transicao())
         ]
+
+        self.dados_coletados = []
+        
         for nome, dados in cenarios:
             self.plotar(dados, f"Cenário: {nome}")
 
+        self.gerar_csv()
 
 
-# ldr = LDR("Sala 01")
+
+ldr = LDR("Sala 01")
 
 # Para ver os gráficos:
-# ldr.executar_cenarios()
+ldr.executar_cenarios()
 
 # Para leitura contínua no terminal:
 # ldr.monitorar_continuamente(intervalo=1.0)
