@@ -143,7 +143,7 @@ class LDR(Sensor):
 ldr = LDR("Sala 01")
 
 # Para ver os gráficos:
-ldr.executar_cenarios()
+# ldr.executar_cenarios()
 
 # Para leitura contínua no terminal:
 # ldr.monitorar_continuamente(intervalo=1.0)

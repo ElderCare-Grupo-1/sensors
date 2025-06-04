@@ -98,12 +98,13 @@ class GerenciadorSensores:
                 
                 # Processa sensores globais
                 self._ler_dados_sensores_globais()
+                self._gerar_csv_ocorrencias_localizacao()
                 
                 time.sleep(1)
                 
         except KeyboardInterrupt:
             print("\nFinalizando sistema...")
-            self._gerar_grafico_localizacaos()
+            self._gerar_grafico_localizacao()
 
     def _avaliar_risco(self, localizacao, dados_sensores):
         if not dados_sensores:  # Se não houver dados, não há risco
@@ -211,9 +212,7 @@ class GerenciadorSensores:
 
     def _gerar_csv_ocorrencias_localizacao(self):
         """Gera um arquivo CSV com a contagem de ocorrências por cômodo"""
-        # Nome do arquivo com timestamp para evitar sobrescrita
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        nome_arquivo = f"ocorrencias_por_comodo_{timestamp}.csv"
+        nome_arquivo = f"ocorrencias_por_comodo.csv"
         
         # Cabeçalho do CSV
         cabecalho = ["Cômodo", "Ocorrências de Risco", "Tempo em Risco (s)"]
